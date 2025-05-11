@@ -35,12 +35,28 @@ formatter_agent = LlmAgent(
     output_key="final_short_concept",
 )
 
-youtube_shorts_agent = LlmAgent(
-    name="youtube_shorts_agent",
-    description="a smart AI agent curated for generation of sensational shorts",
-    model="gemini-2.0-flash-thinking-exp-01-21",
-    instruction=load_instruction_from_file("shorts_agent.txt"),
-    sub_agents=[Agent_Search,scriptwriter_agent,visualizer_agent,formatter_agent]
+"""note that just changing the agent types between LLmAgent and loopAgent
+   changes what kind of agent we want, if we want to give the LLM autonomy to make the decision
+   of using tools to its own thinking then use LlmAgent else use Loopagent or your can use sequential agent
+   to convert your agents to workflow agent(jsut like langchain and lang graph)"""
+
+# youtube_shorts_agent = LlmAgent(
+#     name="youtube_shorts_agent",
+#     description="a smart AI agent curated for generation of sensational shorts",
+#     model="gemini-2.0-flash-thinking-exp-01-21",
+#     instruction=load_instruction_from_file("shorts_agent.txt"),
+#     sub_agents=[Agent_Search,scriptwriter_agent,visualizer_agent,formatter_agent]
+# )
+
+youtube_shorts_agent = LoopAgent(
+    name='youtube_shorts_agent',
+    max_iterations=1, #this controls how many times we can loop until we get our preffered output
+    #agents will be called in this order
+    sub_agents=[Agent_Search,
+                scriptwriter_agent,
+                visualizer_agent,
+                formatter_agent
+    ]
 )
 
 root_agent = youtube_shorts_agent

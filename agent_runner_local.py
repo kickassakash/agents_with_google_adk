@@ -1,4 +1,5 @@
-#root agent
+#so this file can be directly used without the help of the adk library
+#and we can run it anywhere, we just need python "file_path\agent_runner_local.py"
 from google.adk.agents import LlmAgent,LoopAgent
 from google.adk.agents import Agent
 from google.adk.tools import google_search
@@ -7,8 +8,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from dotenv import load_dotenv
 
-from .util import load_instruction_from_file
+from util import load_instruction_from_file
 
+#creating agents are same as before,
 Agent_Search = LlmAgent(
     model='gemini-2.0-flash-thinking-exp-01-21',
     name='SearchAgent',
@@ -50,3 +52,37 @@ youtube_shorts_agent = LoopAgent(
 )
 
 root_agent = youtube_shorts_agent
+
+#just load your environment variables
+load_dotenv()
+
+#create your preffered app name and user_id and session_id (you can use
+#any kind of string for this purpose)
+app_name = "youtube_shorts_script_app"
+user_id = "1234567"
+session_id = "1234"
+
+#this InMemorySessionService is for storing the session data inside main
+#memory until the session expires
+session_service = InMemorySessionService()
+session = session_service.create_session(
+    app_name=app_name,user_id=user_id,session_id=session_id
+)
+#this is our custom runner which chooses the root agent
+runner = Runner(
+    agent=youtube_shorts_agent,session_service=session_service,app_name=app_name
+)
+
+#this function is the main caller, which calls the root agent and handles
+#the events and its outputs
+def call_agent(query):
+    content = types.Content(role='user',parts=[types.Part(text=query)])
+    events = runner.run(user_id=user_id,session_id=session_id,new_message=content)
+
+    for event in events:
+        if event.is_final_response():
+            res = event.content.parts[0].text
+            print("response from event: ",res)
+
+#use your preffered query here or you can also take input and then process
+call_agent("I want to write a short on how to build AI Agents")
